@@ -1,5 +1,5 @@
 from django.db import models
-
+from django.urls import reverse
 
 # Create your models here.
 
@@ -13,6 +13,8 @@ class Category(models.Model):
     def __str__(self):
         return self.name  #Renaming categories on the Category page in Django's admin panel
 
+    def get_absolute_url(self):
+        return reverse('list-category', args=[self.slug])
 
 class Product(models.Model):
     category = models.ForeignKey(Category, related_name='product', on_delete=models.CASCADE, null=True)
@@ -28,3 +30,6 @@ class Product(models.Model):
 
     def __str__(self):
         return self.title  #Renaming products on the Product page in Django's admin panel
+
+    def get_absolute_url(self):
+        return reverse('product-info', args=[self.slug])
