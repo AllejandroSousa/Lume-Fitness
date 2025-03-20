@@ -22,8 +22,13 @@ from django.conf.urls.static import static
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+
+    # Store app
     path('', include('store.urls')),
+
+    # Cart app
+    path('cart/', include('cart.urls')),
 ]
 
-#All images will be uploaded in the same folder
+# All images will be uploaded in the same folder
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
