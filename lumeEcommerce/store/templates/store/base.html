@@ -118,6 +118,10 @@
             class="btn btn-outline-secondary"
           >
             <i class="fa fa-shopping-cart" aria-hidden="true"> </i>
+            &nbsp;
+            <div id="cart-qty" class="d-inline-flex">
+              {{ cart|length|default:0 }}
+            </div>
           </a>
         </li>
 
