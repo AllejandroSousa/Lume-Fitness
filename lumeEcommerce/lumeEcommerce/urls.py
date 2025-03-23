@@ -28,6 +28,9 @@ urlpatterns = [
 
     # Cart app
     path('cart/', include('cart.urls')),
+
+    # Account app
+    path('account/', include('account.urls'))
 ]
 
 # All images will be uploaded in the same folder

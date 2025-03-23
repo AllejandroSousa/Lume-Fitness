@@ -22,6 +22,8 @@
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"
     />
 
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+
     <!-- JavaScript -->
 
     <script
@@ -97,7 +99,7 @@
     <div class="collapse navbar-collapse text-center" id="navbarNavDropdown">
       <ul class="navbar-nav ms-auto">
         <li class="nav-item">
-          <a class="btn btn-alert navbar-btn text-white" type="button" href="/">
+          <a class="btn btn-alert navbar-btn text-white" type="button" href="{% url 'register' %}">
             Cadastre-se
           </a>
         </li>
