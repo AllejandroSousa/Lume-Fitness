@@ -59,11 +59,6 @@ class LoginForm(AuthenticationForm):
 
 # Update form
 class UpdateUserForm(forms.ModelForm):
-    username = forms.CharField(
-        label="Usuário",
-        help_text="Obrigatório. Máximo de 150 caracteres. Apenas letras, números e @/./+/-/_."
-    )
-    email = forms.EmailField(label="E-mail")
     password = None
 
     class Meta:
@@ -71,6 +66,24 @@ class UpdateUserForm(forms.ModelForm):
         model = User
         fields = ['username', 'email']
         exclude = ['password1', 'password2']
-    
+
+    username = forms.CharField(
+        label="Usuário",
+        help_text="Obrigatório. Máximo de 150 caracteres. Apenas letras, números e @/./+/-/_."
+    )
+    email = forms.EmailField(label="E-mail")
+
     def __init__(self, *args, **kwargs):
         super(UpdateUserForm, self).__init__(*args, **kwargs)
+
+    # Email validation
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+
+        if User.objects.filter(email=email).exclude(pk=self.instance.pk).exists():
+            raise forms.ValidationError('Já existe uma conta com este email!')
+
+        if len(email) >= 350:
+            raise forms.ValidationError('Email inválido: muito longo!')
+
+        return email

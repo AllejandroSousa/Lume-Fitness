@@ -13,8 +13,7 @@
         <br>
         <div class="container bg-white shadow-md p-5 form-layout">
             <h3> Entre na sua conta </h3>
-            <br>
-            <br>
+            <hr>
             <form method="POST" autocomplete="off">
 
                 {% csrf_token %}
@@ -22,10 +21,17 @@
                 <br>
                 {{form.password|as_crispy_field}}
                 <br><br>
-                <button type="submit" class="btn btn-secondary btn-lg w-100 btn-block p-2">
+                <button type="submit" class="btn btn-primary navbar-btn text-white w-100">
                     &nbsp;
                     Entrar
                 </button>
+
+                <br><br>
+                <div class="text-center">                
+                    <a href="{% url 'register' %}">Não tem uma conta? Criar</a>
+                    <br>
+                    <a href="{% url 'my-login' %}">Esqueci minha senha</a>
+                </div>
             </form>
         </div>
         <br><br>
