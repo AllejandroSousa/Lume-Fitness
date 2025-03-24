@@ -43,7 +43,7 @@ class CreateUserForm(UserCreationForm):
         email = self.cleaned_data.get('email')
 
         if User.objects.filter(email=email).exists():
-            raise forms.validationError('Já existe uma conta com este email!')
+            raise forms.ValidationError('Já existe uma conta com este email!')
 
         if len(email) >= 350:
             raise forms.ValidationError('Email inválido: muito longo!')
