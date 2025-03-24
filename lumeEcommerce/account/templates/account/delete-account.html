@@ -12,19 +12,16 @@
     <body>
         <br>
         <div class="container bg-white shadow-md p-5 form-layout">
-            <h3> Entre na sua conta </h3>
-            <br>
-            <br>
+            <h3> Deletar sua conta </h3>
+            <hr>
             <form method="POST" autocomplete="off">
 
                 {% csrf_token %}
-                {{form.username|as_crispy_field}}
+                <p>Você tem certeza de que deseja excluir a sua conta?</p>
                 <br>
-                {{form.password|as_crispy_field}}
-                <br><br>
-                <button type="submit" class="btn btn-secondary btn-lg w-100 btn-block p-2">
+                <button type="submit" class="btn btn-danger btn-lg w-100 btn-block p-2">
                     &nbsp;
-                    Entrar
+                    Deletar
                 </button>
             </form>
         </div>

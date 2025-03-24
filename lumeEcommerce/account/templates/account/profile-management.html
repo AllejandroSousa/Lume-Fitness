@@ -12,21 +12,32 @@
     <body>
         <br>
         <div class="container bg-white shadow-md p-5 form-layout">
-            <h3> Entre na sua conta </h3>
+            <h3> Atualize sua conta </h3>
             <br>
             <br>
             <form method="POST" autocomplete="off">
 
                 {% csrf_token %}
-                {{form.username|as_crispy_field}}
+                {{user_form.username|as_crispy_field}}
                 <br>
-                {{form.password|as_crispy_field}}
+                {{user_form.email|as_crispy_field}}
                 <br><br>
                 <button type="submit" class="btn btn-secondary btn-lg w-100 btn-block p-2">
                     &nbsp;
-                    Entrar
+                    Atualizar
                 </button>
             </form>
+        </div>
+
+        <br>
+
+        <div class="container bg-white shadow-md p-5 form-layout">
+            <h3> Deletar sua conta </h3>
+            <hr>
+            <p>Continue se você deseja deletar a sua conta.</p>
+            <a class="btn btn-danger navbar-btn text-white" type="button" href="{% url 'delete-account' %}">
+                Deletar
+            </a>
         </div>
         <br><br>
     </body>
