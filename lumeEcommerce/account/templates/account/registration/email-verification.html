@@ -1,0 +1,9 @@
+{% autoescape off %}
+    
+Olá,
+Obrigado por se cadastrar no nosso site.
+Pedimos por gentileza que verifique o seu email clicando no link abaixo:
+
+http://{{domain}}{% url 'email-verification' uidb64=uid token=token %}
+
+{% endautoescape %}

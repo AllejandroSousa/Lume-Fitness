@@ -2,6 +2,4 @@
 .venv
 .idea
 db.sqlite3
-lumeEcommerce/lumeEcommerce/__pycache__
-lumeEcommerce/store/__pycache__
-lumeEcommerce/store/migrations/__pycache__
+**/__pycache__/
