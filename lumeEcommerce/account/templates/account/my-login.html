@@ -24,13 +24,14 @@
                 <button type="submit" class="btn btn-primary navbar-btn text-white w-100">
                     &nbsp;
                     Entrar
-                </button>
+                </button>                
 
                 <br><br>
+                {{form.non_field_errors}}
                 <div class="text-center">                
                     <a href="{% url 'register' %}">Não tem uma conta? Criar</a>
                     <br>
-                    <a href="{% url 'my-login' %}">Esqueci minha senha</a>
+                    <a href="{% url 'reset_password' %}">Esqueci minha senha</a>
                 </div>
             </form>
         </div>
