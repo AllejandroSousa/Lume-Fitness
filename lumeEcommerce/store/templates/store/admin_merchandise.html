@@ -1,0 +1,248 @@
+{% extends 'store/base.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+
+<style>
+    body {
+        background-color: #e9ecef;
+        font-family: 'Arial', sans-serif;
+    }
+
+    .form-layout {
+        max-width: 800px;
+        margin: 0 auto;
+        border-radius: 10px;
+        background: linear-gradient(145deg, #ffffff, #f0f0f0);
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+        padding: 30px;
+        margin-top: 50px;
+        margin-bottom: 50px;
+    }
+
+    h3, h4 {
+        color: #343a40;
+        font-weight: 600;
+        text-align: center;
+        margin-bottom: 30px;
+    }
+
+    hr {
+        border-top: 2px solid #dee2e6;
+        margin: 30px 0;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .text-center a:hover {
+        text-decoration: underline;
+    }
+
+    table {
+        width: 100%;
+        margin-bottom: 30px;
+    }
+
+    th, td {
+        padding: 15px;
+        text-align: left;
+        border-bottom: 1px solid #dee2e6;
+    }
+
+    .btn-small {
+        padding: 5px 10px;
+        font-size: 14px;
+        margin-right: 5px;
+    }
+
+    .nav-tabs {
+        margin-bottom: 30px;
+        display: flex;
+        flex-wrap: wrap;
+    }
+
+    .nav-tabs .nav-item {
+        flex: 0 0 50%;
+        text-align: center;
+    }
+
+    .nav-tabs .nav-link {
+        color: #343a40;
+        font-weight: 500;
+        padding: 10px 20px;
+        margin-right: 5px;
+        width: 100%;
+        border-radius: 5px;
+    }
+
+    .nav-tabs .nav-link:hover {
+        color: #fff; /* Cor branca ao passar o mouse */
+        background-color: #0056b3; /* Cor de fundo mais escura para contraste */
+        transition: color 0.3s ease, background-color 0.3s ease; /* Transição suave */
+    }
+
+    .nav-tabs .nav-link.active {
+        background-color: #01264e;
+        color: white;
+        border-color: #01264e;
+    }
+
+    .tab-content {
+        padding: 20px 0;
+    }
+</style>
+
+<div class="container form-layout">
+    <h3>Gerenciar Mercadorias</h3>
+    <hr>
+
+    <!-- Abas -->
+    <ul class="nav nav-tabs" id="adminTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="products-tab" data-bs-toggle="tab" data-bs-target="#products" type="button" role="tab" aria-controls="products" aria-selected="true">Produtos</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="add-product-tab" data-bs-toggle="tab" data-bs-target="#add-product" type="button" role="tab" aria-controls="add-product" aria-selected="false">Adicionar Produto</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="categories-tab" data-bs-toggle="tab" data-bs-target="#categories" type="button" role="tab" aria-controls="categories" aria-selected="false">Categorias</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="add-category-tab" data-bs-toggle="tab" data-bs-target="#add-category" type="button" role="tab" aria-controls="add-category" aria-selected="false">Adicionar Categoria</button>
+        </li>
+    </ul>
+
+    <!-- Conteúdo das Abas -->
+    <div class="tab-content" id="adminTabsContent">
+        <!-- Aba Produtos -->
+        <div class="tab-pane fade show active" id="products" role="tabpanel" aria-labelledby="products-tab">
+            <h4>Produtos</h4>
+            {% if products %}
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Título</th>
+                            <th>Categoria</th>
+                            <th>Preço</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for product in products %}
+                            <tr>
+                                <td>{{ product.title }}</td>
+                                <td>{{ product.category.name }}</td>
+                                <td>R$ {{ product.price }}</td>
+                                <td>
+                                    <a href="{% url 'edit_product' product.slug %}" class="btn btn-primary btn-small">Editar</a>
+                                    <a href="{% url 'delete_product' product.slug %}" class="btn btn-danger btn-small">Excluir</a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <p>Nenhum produto cadastrado.</p>
+            {% endif %}
+        </div>
+
+        <!-- Aba Adicionar Produto -->
+        <div class="tab-pane fade" id="add-product" role="tabpanel" aria-labelledby="add-product-tab">
+            <h4>Adicionar Produto</h4>
+            <form method="POST" enctype="multipart/form-data" autocomplete="off">
+                {% csrf_token %}
+                <input type="hidden" name="add_product" value="1">
+                {{ product_form|crispy }}
+                <button type="submit" class="btn btn-primary navbar-btn text-white w-100">
+                    Adicionar Produto
+                </button>
+            </form>
+        </div>
+
+        <!-- Aba Categorias -->
+        <div class="tab-pane fade" id="categories" role="tabpanel" aria-labelledby="categories-tab">
+            <h4>Categorias</h4>
+            {% if categories %}
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Nome</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for category in categories %}
+                            <tr>
+                                <td>{{ category.name }}</td>
+                                <td>
+                                    <a href="{% url 'edit_category' category.slug %}" class="btn btn-primary btn-small">Editar</a>
+                                    <a href="{% url 'delete_category' category.slug %}" class="btn btn-danger btn-small">Excluir</a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <p>Nenhuma categoria cadastrada.</p>
+            {% endif %}
+        </div>
+
+        <!-- Aba Adicionar Categoria -->
+        <div class="tab-pane fade" id="add-category" role="tabpanel" aria-labelledby="add-category-tab">
+            <h4>Adicionar Categoria</h4>
+            <form method="POST" autocomplete="off">
+                {% csrf_token %}
+                <input type="hidden" name="add_category" value="1">
+                {{ category_form|crispy }}
+                <button type="submit" class="btn btn-primary navbar-btn text-white w-100">
+                    Adicionar Categoria
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <br><br>
+    <div class="text-center">
+        <a href="{% url 'store' %}">Voltar para a página inicial</a>
+    </div>
+</div>
+
+<script>
+    function slugify(text) {
+        return text
+            .toLowerCase()
+            .replace(/[^\w\s-]/g, '')
+            .replace(/\s+/g, '-')
+            .replace(/-+/g, '-')
+            .trim();
+    }
+
+    // Para o formulário de adicionar produto
+    const productTitleField = document.querySelector('#add-product #id_title');
+    const productSlugField = document.querySelector('#add-product #id_slug');
+
+    if (productTitleField && productSlugField) {
+        productTitleField.addEventListener('input', function() {
+            const titleValue = productTitleField.value;
+            const slugValue = slugify(titleValue);
+            productSlugField.value = slugValue;
+        });
+    }
+
+    // Para o formulário de adicionar categoria
+    const categoryNameField = document.querySelector('#add-category #id_name');
+    const categorySlugField = document.querySelector('#add-category #id_slug');
+
+    if (categoryNameField && categorySlugField) {
+        categoryNameField.addEventListener('input', function() {
+            const nameValue = categoryNameField.value;
+            const slugValue = slugify(nameValue);
+            categorySlugField.value = slugValue;
+        });
+    }
+</script>
+
+{% endblock %}

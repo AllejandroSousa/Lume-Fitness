@@ -1,0 +1,74 @@
+{% extends 'store/base.html' %}
+{% load static %}
+
+{% block content %}
+
+<style>
+    body {
+        background-color: #e9ecef;
+        font-family: 'Arial', sans-serif;
+    }
+
+    .form-layout {
+        max-width: 800px;
+        margin: 0 auto;
+        border-radius: 10px;
+        background: linear-gradient(145deg, #ffffff, #f0f0f0);
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+        padding: 30px;
+        margin-top: 50px;
+        margin-bottom: 50px;
+    }
+
+    h3, h4 {
+        color: #343a40;
+        font-weight: 600;
+        text-align: center;
+        margin-bottom: 20px;
+    }
+
+    hr {
+        border-top: 2px solid #dee2e6;
+        margin: 20px 0;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .text-center a:hover {
+        text-decoration: underline;
+    }
+
+    table {
+        width: 100%;
+        margin-bottom: 20px;
+    }
+
+    th, td {
+        padding: 10px;
+        text-align: left;
+        border-bottom: 1px solid #dee2e6;
+    }
+
+    .btn-small {
+        padding: 5px 10px;
+        font-size: 14px;
+    }
+</style>
+
+<div class="container form-layout">
+    <h3>Excluir Produto</h3>
+    <hr>
+    <p>Tem certeza que deseja excluir o produto "{{ product.title }}"?</p>
+    <form method="POST">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger w-100">Confirmar Exclusão</button>
+    </form>
+    <br>
+    <div class="text-center">
+        <a href="{% url 'admin_merchandise' %}">Cancelar</a>
+    </div>
+</div>
+
+{% endblock %}

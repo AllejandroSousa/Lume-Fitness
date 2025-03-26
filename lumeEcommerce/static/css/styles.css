@@ -2,3 +2,13 @@
     border-radius: 20px;
     width: 500px;
 }
+
+.btn:hover {
+    transition: background-color 0.3s ease;
+    background-color: #024184 !important;
+}
+
+.nav-link:hover {
+    transition: background-color 0.3s ease;
+    background-color: #024184 !important;
+}
