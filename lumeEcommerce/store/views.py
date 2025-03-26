@@ -9,9 +9,19 @@ from .forms import ProductForm, CategoryForm
 @login_required(login_url='my-login')
 @user_passes_test(lambda u: u.is_staff)
 def admin_merchandise(request):
-    # Lista de produtos e categorias
-    products = Product.objects.all()
-    categories = Category.objects.all()
+    # Pesquisa de produtos
+    product_query = request.GET.get('product_search', '')
+    if product_query:
+        products = Product.objects.filter(title__icontains=product_query)
+    else:
+        products = Product.objects.all()
+
+    # Pesquisa de categorias
+    category_query = request.GET.get('category_search', '')
+    if category_query:
+        categories = Category.objects.filter(name__icontains=category_query)
+    else:
+        categories = Category.objects.all()
 
     # Formulário para adicionar produto
     product_form = ProductForm()
@@ -34,6 +44,8 @@ def admin_merchandise(request):
         'categories': categories,
         'product_form': product_form,
         'category_form': category_form,
+        'product_query': product_query,  # Para manter o valor no campo de pesquisa
+        'category_query': category_query,  # Para manter o valor no campo de pesquisa
     }
     return render(request, 'store/admin_merchandise.html', context)
 

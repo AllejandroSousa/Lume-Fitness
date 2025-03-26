@@ -79,19 +79,36 @@
     }
 
     .nav-tabs .nav-link:hover {
-        color: #fff; /* Cor branca ao passar o mouse */
-        background-color: #0056b3; /* Cor de fundo mais escura para contraste */
-        transition: color 0.3s ease, background-color 0.3s ease; /* Transição suave */
+        color: #fff;
+        background-color: #0056b3;
+        transition: color 0.3s ease, background-color 0.3s ease;
     }
 
     .nav-tabs .nav-link.active {
-        background-color: #01264e;
+        background-color: #0068d6;
         color: white;
-        border-color: #01264e;
+        border-color: #0068d6;
     }
 
     .tab-content {
         padding: 20px 0;
+    }
+
+    .search-form {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 20px;
+    }
+
+    .search-form input {
+        width: 70%;
+        margin-right: 10px;
+    }
+
+    .search-form .btn-secondary {
+        background-color: #6c757d;
+        border-color: #6c757d;
+        color: white;
     }
 </style>
 
@@ -120,33 +137,42 @@
         <!-- Aba Produtos -->
         <div class="tab-pane fade show active" id="products" role="tabpanel" aria-labelledby="products-tab">
             <h4>Produtos</h4>
-            {% if products %}
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Título</th>
-                            <th>Categoria</th>
-                            <th>Preço</th>
-                            <th>Ações</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for product in products %}
+            <!-- Formulário de Pesquisa de Produtos -->
+            <form class="search-form" id="product-search-form">
+                <input type="hidden" name="tab" value="products">
+                <input type="text" name="product_search" class="form-control" placeholder="Pesquisar por título..." value="{{ product_query }}">
+                <button type="button" class="btn btn-primary btn-small" onclick="searchProducts()">Pesquisar</button>
+                <button type="button" class="btn btn-secondary btn-small" onclick="clearProductSearch()">Limpar</button>
+            </form>
+            <div id="product-results">
+                {% if products %}
+                    <table id="product-table">
+                        <thead>
                             <tr>
-                                <td>{{ product.title }}</td>
-                                <td>{{ product.category.name }}</td>
-                                <td>R$ {{ product.price }}</td>
-                                <td>
-                                    <a href="{% url 'edit_product' product.slug %}" class="btn btn-primary btn-small">Editar</a>
-                                    <a href="{% url 'delete_product' product.slug %}" class="btn btn-danger btn-small">Excluir</a>
-                                </td>
+                                <th>Título</th>
+                                <th>Categoria</th>
+                                <th>Preço</th>
+                                <th>Ações</th>
                             </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            {% else %}
-                <p>Nenhum produto cadastrado.</p>
-            {% endif %}
+                        </thead>
+                        <tbody>
+                            {% for product in products %}
+                                <tr>
+                                    <td>{{ product.title }}</td>
+                                    <td>{{ product.category.name }}</td>
+                                    <td>R$ {{ product.price }}</td>
+                                    <td>
+                                        <a href="{% url 'edit_product' product.slug %}" class="btn btn-primary btn-small">Editar</a>
+                                        <a href="{% url 'delete_product' product.slug %}" class="btn btn-danger btn-small">Excluir</a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% else %}
+                    <p>Nenhum produto encontrado.</p>
+                {% endif %}
+            </div>
         </div>
 
         <!-- Aba Adicionar Produto -->
@@ -165,29 +191,38 @@
         <!-- Aba Categorias -->
         <div class="tab-pane fade" id="categories" role="tabpanel" aria-labelledby="categories-tab">
             <h4>Categorias</h4>
-            {% if categories %}
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Nome</th>
-                            <th>Ações</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for category in categories %}
+            <!-- Formulário de Pesquisa de Categorias -->
+            <form class="search-form" id="category-search-form">
+                <input type="hidden" name="tab" value="categories">
+                <input type="text" name="category_search" class="form-control" placeholder="Pesquisar por nome..." value="{{ category_query }}">
+                <button type="button" class="btn btn-primary btn-small" onclick="searchCategories()">Pesquisar</button>
+                <button type="button" class="btn btn-secondary btn-small" onclick="clearCategorySearch()">Limpar</button>
+            </form>
+            <div id="category-results">
+                {% if categories %}
+                    <table id="category-table">
+                        <thead>
                             <tr>
-                                <td>{{ category.name }}</td>
-                                <td>
-                                    <a href="{% url 'edit_category' category.slug %}" class="btn btn-primary btn-small">Editar</a>
-                                    <a href="{% url 'delete_category' category.slug %}" class="btn btn-danger btn-small">Excluir</a>
-                                </td>
+                                <th>Nome</th>
+                                <th>Ações</th>
                             </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            {% else %}
-                <p>Nenhuma categoria cadastrada.</p>
-            {% endif %}
+                        </thead>
+                        <tbody>
+                            {% for category in categories %}
+                                <tr>
+                                    <td>{{ category.name }}</td>
+                                    <td>
+                                        <a href="{% url 'edit_category' category.slug %}" class="btn btn-primary btn-small">Editar</a>
+                                        <a href="{% url 'delete_category' category.slug %}" class="btn btn-danger btn-small">Excluir</a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% else %}
+                    <p>Nenhuma categoria encontrada.</p>
+                {% endif %}
+            </div>
         </div>
 
         <!-- Aba Adicionar Categoria -->
@@ -243,6 +278,91 @@
             categorySlugField.value = slugValue;
         });
     }
+
+    // Restaurar a aba ativa após o recarregamento
+    document.addEventListener('DOMContentLoaded', function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const activeTab = urlParams.get('tab') || 'products'; // Por padrão, ativa a aba "products"
+        const tabButton = document.querySelector(`#${activeTab}-tab`);
+        const tabPane = document.querySelector(`#${activeTab}`);
+
+        if (tabButton && tabPane) {
+            // Remove a classe "active" de todas as abas e painéis
+            document.querySelectorAll('.nav-link').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.remove('show', 'active'));
+
+            // Ativa a aba e o painel correspondentes
+            tabButton.classList.add('active');
+            tabPane.classList.add('show', 'active');
+        }
+    });
+
+    // Função para pesquisar produtos via AJAX
+    function searchProducts() {
+        const form = document.getElementById('product-search-form');
+        const formData = new FormData(form);
+        const query = formData.get('product_search');
+
+        fetch(`/admin_page/merchandise/?product_search=${encodeURIComponent(query)}&tab=products`)
+            .then(response => response.text())
+            .then(data => {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(data, 'text/html');
+                const newResults = doc.querySelector('#product-results').innerHTML;
+                document.querySelector('#product-results').innerHTML = newResults;
+            })
+            .catch(error => console.error('Erro ao buscar produtos:', error));
+    }
+
+    // Função para limpar a pesquisa de produtos
+    function clearProductSearch() {
+        const form = document.getElementById('product-search-form');
+        form.querySelector('input[name="product_search"]').value = '';
+
+        fetch(`/admin_page/merchandise/?tab=products`)
+            .then(response => response.text())
+            .then(data => {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(data, 'text/html');
+                const newResults = doc.querySelector('#product-results').innerHTML;
+                document.querySelector('#product-results').innerHTML = newResults;
+            })
+            .catch(error => console.error('Erro ao limpar pesquisa de produtos:', error));
+    }
+
+    // Função para pesquisar categorias via AJAX
+    function searchCategories() {
+        const form = document.getElementById('category-search-form');
+        const formData = new FormData(form);
+        const query = formData.get('category_search');
+
+        fetch(`/admin_page/merchandise/?category_search=${encodeURIComponent(query)}&tab=categories`)
+            .then(response => response.text())
+            .then(data => {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(data, 'text/html');
+                const newResults = doc.querySelector('#category-results').innerHTML;
+                document.querySelector('#category-results').innerHTML = newResults;
+            })
+            .catch(error => console.error('Erro ao buscar categorias:', error));
+    }
+
+    // Função para limpar a pesquisa de categorias
+    function clearCategorySearch() {
+        const form = document.getElementById('category-search-form');
+        form.querySelector('input[name="category_search"]').value = '';
+
+        fetch(`/admin_page/merchandise/?tab=categories`)
+            .then(response => response.text())
+            .then(data => {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(data, 'text/html');
+                const newResults = doc.querySelector('#category-results').innerHTML;
+                document.querySelector('#category-results').innerHTML = newResults;
+            })
+            .catch(error => console.error('Erro ao limpar pesquisa de categorias:', error));
+    }
+
 </script>
 
 {% endblock %}
