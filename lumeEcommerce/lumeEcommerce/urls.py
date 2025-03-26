@@ -30,7 +30,10 @@ urlpatterns = [
     path('cart/', include('cart.urls')),
 
     # Account app
-    path('account/', include('account.urls'))
+    path('account/', include('account.urls')),
+
+    # Payment app
+    path('payment/', include('payment.urls')),
 ]
 
 # All images will be uploaded in the same folder

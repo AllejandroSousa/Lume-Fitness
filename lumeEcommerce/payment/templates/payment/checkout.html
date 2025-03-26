@@ -1,0 +1,174 @@
+{% include "store/base.html" %} {% load static %} {% block content %}
+
+<style>
+  body {
+    background-color: gray;
+  }
+</style>
+
+<body>
+  <br />
+
+  <div
+    class="container bg-white shadow-md p-5"
+    style="width: 500px; border-radius: 20px"
+  >
+    <form id="form">
+      <div>
+        <h3>
+          <i class="fa fa-chevron-circle-right" aria-hidden="true"></i> &nbsp;
+          Concluir pedido
+        </h3>
+
+        <p>Por favor, preencha os campos abaixo.</p>
+
+        <hr />
+
+        <br />
+
+        <div class="form-field">
+          <input
+            class="form-control validate"
+            id="name"
+            type="text"
+            placeholder="Nome completo*"
+            autocomplete="off"
+            value="{{shipping.full_name}}"
+            required
+          />
+        </div>
+
+        <br />
+
+        <div class="form-field">
+          <input
+            class="form-control validate"
+            id="email"
+            type="email"
+            placeholder="Email*"
+            autocomplete="off"
+            value="{{shipping.email}}"
+            required
+          />
+        </div>
+
+        <br />
+
+        <div class="form-field">
+          <input
+            class="form-control"
+            id="zipcode"
+            type="text"
+            placeholder="CEP*"
+            autocomplete="off"
+            value="{{shipping.zipcode}}"
+            required
+          />
+        </div>
+
+        <br>
+
+        <div class="form-field">
+          <input
+            class="form-control validate"
+            id="address1"
+            type="text"
+            placeholder="Endereço 1*"
+            autocomplete="off"
+            value="{{shipping.address1}}"
+            required
+          />
+        </div>
+
+        <br />
+
+        <div class="form-field">
+          <input
+            class="form-control validate"
+            id="address2"
+            type="text"
+            placeholder="Endereço 2"
+            autocomplete="off"
+            value="{{shipping.address2}}"
+          />
+        </div>
+
+        <br />
+
+        <div class="form-field">
+          <input
+            class="form-control validate"
+            id="city"
+            type="text"
+            placeholder="Cidade*"
+            autocomplete="off"
+            value="{{shipping.city}}"
+            required
+          />
+        </div>
+
+        <br />
+
+        <div class="form-field">
+          <input
+            class="form-control"
+            id="state"
+            type="text"
+            placeholder="Estado*"
+            autocomplete="off"
+            value="{{shipping.state}}"
+            required
+          />
+        </div>
+      </div>
+
+      <br />
+
+      <button
+        id="complete-order"
+        type="submit"
+        class="btn btn-primary navbar-btn text-white"
+      >
+        &nbsp; Concluir pedido
+      </button>
+
+      <br />
+    </form>
+  </div>
+
+  <br />
+</body>
+
+<!-- Ajax integration -->
+
+<script>
+  // Complete checkout
+  $(document).on("submit", function (e) {
+    e.preventDefault();
+    $.ajax({
+      type: "POST",
+      url: "{% url 'complete-order' %}",
+      data: {
+        name: $("#name").val(),
+        email: $("#email").val(),
+        zipcode: $("#zipcode").val(),
+        address1: $("#address1").val(),
+        address2: $("#address2").val(),
+        city: $("#city").val(),
+        state: $("#state").val(),
+        csrfmiddlewaretoken: "{{csrf_token}}",
+        action: "post",
+      },
+
+      success: function (json) {
+        //console.log(json);
+        window.location.replace("{% url 'payment-success' %}")
+      },
+      error: function (xhr, errmsg, err) {
+        window.location.replace("{% url 'payment-failed' %}")
+      },
+    });
+  });
+</script>
+
+{% endblock %}
