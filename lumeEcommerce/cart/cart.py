@@ -64,4 +64,5 @@ class Cart():
             yield item
 
     def get_total(self):
-        return (sum(Decimal(item['price']) * item['qty'] for item in self.cart.values()))
+        total = sum(Decimal(item['price']) * item['qty'] for item in self.cart.values())
+        return "{:.2f}".format(total).replace(',', '.')

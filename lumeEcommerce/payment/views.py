@@ -2,23 +2,32 @@ from django.shortcuts import render
 from .models import ShippingAddress, Order, OrderItem
 from cart.cart import Cart
 from django.http import JsonResponse
+from django.conf import settings
 # Create your views here.
 
 
 def checkout(request):
+    paypal_client_id = settings.PAYPAL_CLIENT_ID
+
     # Users with accounts - Pre-fill the form
     if request.user.is_authenticated:
         try:
-            shipping_address = ShippingAddress.objects.get(
-                user=request.user.id)
-            context = {'shipping': shipping_address}
+            shipping_address = ShippingAddress.objects.get(user=request.user.id)
+            context = {
+                'shipping': shipping_address,
+                'paypal_client_id': paypal_client_id
+            }
             return render(request, 'payment/checkout.html', context=context)
-        except:
+        except ShippingAddress.DoesNotExist:
             # Authenticated users with no shipping information
-            return render(request, 'payment/checkout.html')
+            return render(request, 'payment/checkout.html', {
+                'paypal_client_id': paypal_client_id
+            })
 
     # Guest users
-    return render(request, 'payment/checkout.html')
+    return render(request, 'payment/checkout.html', {
+        'paypal_client_id': paypal_client_id
+    })
 
 
 def payment_success(request):

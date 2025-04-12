@@ -1,0 +1,38 @@
+{% include 'store/base.html' %} {% load static %} {% load crispy_forms_tags %}
+{% block content %}
+
+<style>
+  body {
+    background-color: gray;
+  }
+</style>
+
+<br />
+<div class="container bg-white shadow-md p-5 form-layout">
+  <div class="text-center">
+    <h3>
+      <i class="fa fa-list-alt" aria-hidden="true"> &nbsp;</i>
+      Meus pedidos
+    </h3>
+    <hr />
+  </div>
+</div>
+
+<br />
+<div class="container bg-white shadow-md p-5 form-layout">
+  {% for order in orders %}
+  <strong>
+    <i class="fa fa-list-alt" aria-hidden="true"> &nbsp;</i>
+    ID do Pedido: # {{ order.id }}
+  </strong>
+  <br /><br />
+  {{order.product}}
+  <br /><br />
+  Quantidade x {{order.quantity}}
+  <br /><br />
+  Valor unitário: R$ {{order.price}}
+  <hr />
+  {% endfor %}
+</div>
+
+{% endblock %}

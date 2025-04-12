@@ -149,3 +149,8 @@ EMAIL_USE_TLS = 'True'
 EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")  # - Enter your email address
 EMAIL_HOST_PASSWORD = os.getenv(
     "EMAIL_HOST_PASSWORD")  # - Enter your app password
+PAYPAL_CLIENT_ID = os.getenv('PAYPAL_CLIENT_ID')  # - Enter your PayPal APP Client ID
+
+
+# Allow PayPal Popups
+SECURE_CROSS_ORIGIN_OPENER_POLICY = 'same-origin-allow-popups'

@@ -28,4 +28,7 @@ urlpatterns = [
 
     # Manage shipping URL's
     path('manage-shipping', views.manage_shipping, name='manage-shipping'),
+
+    #Track orders URL
+    path('track-orders', views.track_orders, name='track-orders'),
 ]

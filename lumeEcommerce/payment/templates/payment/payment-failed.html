@@ -1,1 +1,25 @@
-<h1>failed</h1>
+{% include 'store/base.html' %} {% load static %}
+
+{% block content %}
+
+<style>
+    body {
+        background-color: gray;
+    }
+</style>
+
+<body>
+    <br>
+    <div class="container bg-white shadow-md p-5 form-layout">
+        <div class="text-center">
+            <i class="text-danger fa fa-credit-card-alt fa-2x" aria-hidden="true"></i>
+            <br> <br>
+            <h5> <strong>Erro no pagamento!</strong></h5>
+            <hr>
+            <p>Seu pedido não pôde ser processado.</p>
+        </div>
+        
+    </div>
+
+
+{% endblock %}
