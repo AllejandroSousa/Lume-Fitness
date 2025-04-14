@@ -1,0 +1,138 @@
+{% include 'store/base.html' %} {% load static %} {% load crispy_forms_tags %}
+{% block content %}
+
+<style>
+  body {
+    background-color: gray;
+  }
+  
+  .report-header {
+    background: #343a40;
+    color: white;
+    padding: 15px;
+    border-radius: 5px 5px 0 0;
+    margin-bottom: 0;
+  }
+  
+  .monthly-stats {
+    font-size: 1.2em;
+    margin-bottom: 20px;
+  }
+  
+  .seller-card {
+    border-radius: 5px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+    transition: transform 0.2s;
+  }
+  
+  .seller-card:hover {
+    transform: translateY(-5px);
+  }
+  
+  .seller-card-header {
+    background: #007bff;
+    color: white;
+    padding: 10px 15px;
+    border-radius: 5px 5px 0 0;
+  }
+  
+  .seller-card-body {
+    padding: 15px;
+    background: white;
+    border-radius: 0 0 5px 5px;
+  }
+  
+  .stats-label {
+    font-weight: bold;
+    color: #495057;
+  }
+  
+  .progress {
+    height: 10px;
+    margin-bottom: 20px;
+  }
+</style>
+
+<br />
+
+<div class="container bg-white shadow-md p-5 form-layout">
+  <div class="text-center">
+    <h2 class="report-header">
+      <i class="fa fa-line-chart" aria-hidden="true"></i>
+      Relatório de Vendas - {{ month_name }} {{ year }}
+    </h2>
+
+    <div class="mt-4 mb-4">
+      <!-- Formulário para selecionar mês/ano -->
+      <form method="GET" class="form-inline justify-content-center">
+        <div class="form-row align-items-center">
+          <div class="col-auto">
+            <select name="month" class="form-control">
+              <option value="1" {% if month == 1 %}selected{% endif %}>Janeiro</option>
+              <option value="2" {% if month == 2 %}selected{% endif %}>Fevereiro</option>
+              <option value="3" {% if month == 3 %}selected{% endif %}>Março</option>
+              <option value="4" {% if month == 4 %}selected{% endif %}>Abril</option>
+              <option value="5" {% if month == 5 %}selected{% endif %}>Maio</option>
+              <option value="6" {% if month == 6 %}selected{% endif %}>Junho</option>
+              <option value="7" {% if month == 7 %}selected{% endif %}>Julho</option>
+              <option value="8" {% if month == 8 %}selected{% endif %}>Agosto</option>
+              <option value="9" {% if month == 9 %}selected{% endif %}>Setembro</option>
+              <option value="10" {% if month == 10 %}selected{% endif %}>Outubro</option>
+              <option value="11" {% if month == 11 %}selected{% endif %}>Novembro</option>
+              <option value="12" {% if month == 12 %}selected{% endif %}>Dezembro</option>
+            </select>
+          </div>
+          <div class="col-auto">
+            <select name="year" class="form-control">
+              {% for y in year_range %}
+                <option value="{{ y }}" {% if year == y %}selected{% endif %}>{{ y }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-auto">
+            <button type="submit" class="btn btn-primary">Visualizar</button>
+          </div>
+        </div>
+      </form>
+    </div>
+    <hr />
+  </div>
+
+  <div class="monthly-stats text-center mb-4">
+    <p>Total de vendedores com vendas no período: <strong>{{ seller_stats|length }}</strong></p>
+    <p>Total de vendas realizadas: <strong>{{ total_orders }}</strong></p>
+    <p>Valor total vendido: <strong>R$ {{ total_amount|floatformat:2 }}</strong></p>
+  </div>
+
+  <div class="row">
+    {% for seller in seller_stats %}
+      <div class="col-md-6">
+        <div class="seller-card">
+          <div class="seller-card-header">
+            <h4>{{ seller.seller__user__first_name }} {{ seller.seller__user__last_name }}</h4>
+          </div>
+          <div class="seller-card-body">
+            <p><span class="stats-label">Pedidos concluídos:</span> {{ seller.orders_count }}</p>
+            <p><span class="stats-label">Valor total vendido:</span> R$ {{ seller.total_sold|floatformat:2 }}</p>
+            <p><span class="stats-label">Participação nas vendas:</span> {{ seller.percentage|floatformat:1 }}%</p>
+            
+            <div class="progress">
+              <div class="progress-bar bg-success" role="progressbar" style="width: {{ seller.percentage }}%;"
+                   aria-valuenow="{{ seller.percentage }}" aria-valuemin="0" aria-valuemax="100"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    {% empty %}
+      <div class="col-12 text-center">
+        <p class="alert alert-warning">Nenhuma venda registrada para este período.</p>
+      </div>
+    {% endfor %}
+  </div>
+
+</div>
+
+<br />
+
+{% endblock %}

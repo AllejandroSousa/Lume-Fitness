@@ -1,0 +1,161 @@
+{% include 'store/base.html' %} {% load static %}
+{% block content %}
+
+<style>
+  body {
+    background-color: gray;
+  }
+  
+  .filter-sidebar {
+    background-color: white;
+    padding: 20px;
+    border-radius: 5px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  }
+  
+  .filter-title {
+    font-weight: bold;
+    margin-bottom: 15px;
+    border-bottom: 1px solid #dee2e6;
+    padding-bottom: 8px;
+  }
+  
+  .filter-section {
+    margin-bottom: 20px;
+  }
+  
+  .price-inputs {
+    display: flex;
+    gap: 10px;
+  }
+  
+  .price-inputs input {
+    width: 100%;
+  }
+  
+  .product-card {
+    height: 100%;
+    transition: transform 0.3s;
+  }
+  
+  .product-card:hover {
+    transform: translateY(-5px);
+  }
+  
+  .product-img {
+    height: 200px;
+    object-fit: cover;
+  }
+  
+  .staff-notice {
+    background-color: #f8d7da;
+    color: #721c24;
+    padding: 10px;
+    border-radius: 5px;
+    margin-bottom: 15px;
+  }
+</style>
+
+<div class="container mt-4">
+  <div class="row">
+    <!-- Filtros -->
+    <div class="col-md-3 mb-4">
+      <div class="filter-sidebar">
+        <h4 class="filter-title">Filtros</h4>
+        
+        <form method="GET" action="{% url 'store' %}">
+          <div class="filter-section">
+            <label for="name">Nome do produto:</label>
+            <input type="text" class="form-control" id="name" name="name" value="{{ name_query }}">
+          </div>
+          
+          <div class="filter-section">
+            <label>Faixa de preço:</label>
+            <div class="price-inputs">
+              <input type="number" class="form-control" placeholder="Min" name="min_price" value="{{ min_price }}">
+              <input type="number" class="form-control" placeholder="Max" name="max_price" value="{{ max_price }}">
+            </div>
+          </div>
+          
+          <div class="filter-section">
+            <label for="category">Categoria:</label>
+            <select class="form-control" id="category" name="category">
+              <option value="">Todas as categorias</option>
+              {% for category in categories %}
+                <option value="{{ category.id }}" {% if category_id == category.id|stringformat:"i" %}selected{% endif %}>
+                  {{ category.name }}
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+          
+          <div class="filter-section">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" value="1" id="made_in_mari" name="made_in_mari" {% if made_in_mari %}checked{% endif %}>
+              <label class="form-check-label" for="made_in_mari">
+                Fabricado em Mari
+              </label>
+            </div>
+          </div>
+          
+          {% if user.is_staff %}
+          <div class="filter-section staff-notice">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" value="1" id="low_stock" name="low_stock" {% if low_stock %}checked{% endif %}>
+              <label class="form-check-label" for="low_stock">
+                <strong>Somente itens com baixo estoque</strong>
+                <small class="d-block">(menos de 5 unidades)</small>
+              </label>
+            </div>
+          </div>
+          {% endif %}
+          
+          <button type="submit" class="btn btn-primary w-100">Filtrar</button>
+          <a href="{% url 'store' %}" class="btn btn-outline-secondary w-100 mt-2">Limpar filtros</a>
+        </form>
+      </div>
+    </div>
+    
+    <!-- Produtos -->
+    <div class="col-md-9">
+      <div class="row row-cols-1 row-cols-md-3 g-4">
+        {% for product in all_products %}
+        <div class="col mb-4">
+          <div class="card h-100 product-card">
+            <img class="card-img-top product-img" src="{{ product.image.url }}" alt="{{ product.title }}">
+            <div class="card-body">
+              <h5 class="card-title">{{ product.title }}</h5>
+              <p class="card-text text-muted">{{ product.brand }}</p>
+              <p class="card-text">R$ {{ product.price }}</p>
+              
+              {% if user.is_staff %}
+              <p class="card-text {% if product.stock < 5 %}text-danger{% endif %}">
+                Estoque: {{ product.stock }} unidades
+              </p>
+              {% endif %}
+              
+              {% if product.made_in_mari %}
+              <div class="badge bg-success mb-2">Fabricado em Mari</div>
+              {% endif %}
+            </div>
+            <div class="card-footer bg-white border-top-0">
+              <a href="{{ product.get_absolute_url }}" class="btn btn-outline-secondary btn-sm">Ver detalhes</a>
+              <a href="{% url 'cart-add' %}" class="btn btn-primary btn-sm">
+                Adicionar ao carrinho
+              </a>
+            </div>
+          </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+          <div class="alert alert-info">
+            Nenhum produto encontrado com os filtros selecionados.
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

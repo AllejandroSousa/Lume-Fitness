@@ -1,9 +1,48 @@
 from django.shortcuts import render
-from .models import ShippingAddress, Order, OrderItem
+
+from .models import ShippingAddress, Order, OrderItem, Seller, PaymentMethod
 from cart.cart import Cart
 from django.http import JsonResponse
 from django.conf import settings
-# Create your views here.
+from django.db.models import Count, Sum
+from django.utils import timezone
+from django.contrib.auth.decorators import login_required, user_passes_test
+from datetime import timedelta
+
+@login_required(login_url='my-login')
+@user_passes_test(lambda u: u.is_staff)
+def seller_monthly_report(request):
+    # Define o período (mês atual)
+    today = timezone.now()
+    month = int(request.GET.get('month', today.month))
+    year = int(request.GET.get('year', today.year))
+    
+    first_day = timezone.datetime(year=year, month=month, day=1)
+    if month == 12:
+        last_day = timezone.datetime(year=year+1, month=1, day=1) - timedelta(days=1)
+    else:
+        last_day = timezone.datetime(year=year, month=month+1, day=1) - timedelta(days=1)
+    
+    # Consulta dados de vendas por vendedor
+    seller_stats = Order.objects.filter(
+        date_ordered__gte=first_day,
+        date_ordered__lte=last_day
+    ).values(
+        'seller__user__first_name',
+        'seller__user__last_name'
+    ).annotate(
+        orders_count=Count('id'),
+        total_sold=Sum('amount_paid')
+    ).order_by('-total_sold')
+    
+    context = {
+        'seller_stats': seller_stats,
+        'month': month,
+        'year': year,
+        'month_name': first_day.strftime('%B')
+    }
+    
+    return render(request, 'payment/seller_report.html', context)
 
 
 def checkout(request):
@@ -59,39 +98,76 @@ def complete_order(request):
         # Shopping cart information
         cart = Cart(request)
 
+        # Verificar estoque de todos os itens antes de processar a compra
+        all_items_available = True
+        for item in cart:
+            product = item['product']
+            quantity = item['qty']
+            
+            if product.stock < quantity:
+                all_items_available = False
+                break
+        
+        if not all_items_available:
+            return JsonResponse({'success': False, 'error': 'Estoque insuficiente'})
+        
+        # Calcular desconto se o usuário estiver autenticado
+        discount_percentage = 0
         total_cost = cart.get_total()
-
-        '''
-            Order variations
-
-            1) Create order -> Account users WITH + WITHOUT shipping information
-            2) Create order -> Guest users without an account
-        '''
-
-        # 1) Create order -> Account users WITH + WITHOUT shipping information
+        discount_amount = 0
+        
         if request.user.is_authenticated:
-
-            order = Order.objects.create(
-                full_name=name, email=email, shipping_address=shipping_address, amount_paid=total_cost, user=request.user)
-
-            order_id = order.pk
-
-            for item in cart:
-                OrderItem.objects.create(
-                    order_id=order_id, product=item['product'], quantity=item['qty'], price=item['price'], user=request.user)
-
-        # 2) Create order -> Guest users without an account
-        else:
-            order = Order.objects.create(
-                full_name=name, email=email, shipping_address=shipping_address, amount_paid=total_cost, user=request.user)
-
-            order_id = order.pk
-
-            for item in cart:
-                OrderItem.objects.create(
-                    order_id=order_id, product=item['product'], quantity=item['qty'], price=item['price'], user=request.user)
-
+            try:
+                profile = request.objects.get(user=request.user)
+                discount_percentage = profile.discount_eligibility
+                discount_amount = (discount_percentage / 100) * total_cost
+                total_cost = total_cost - discount_amount
+            except:
+                pass
+        
+        # Criar forma de pagamento
+        payment_method = PaymentMethod.objects.create(
+            type=request.POST.get('payment_type', 'credit'),
+            status='confirmed' if request.POST.get('payment_type') != 'boleto' else 'pending'
+        )
+        
+        # Obter vendedor aleatório (ou específico baseado em alguma lógica)
+        seller = None
+        if Seller.objects.exists():
+            seller = Seller.objects.order_by('?').first()
+        
+        # Criar ordem
+        order = Order.objects.create(
+            full_name=name,
+            email=email,
+            shipping_address=shipping_address,
+            amount_paid=total_cost,
+            discount_amount=discount_amount,
+            user=request.user if request.user.is_authenticated else None,
+            seller=seller,
+            payment_method=payment_method
+        )
+        
+        order_id = order.pk
+        
+        # Criar itens de ordem e atualizar estoque
+        for item in cart:
+            product = item['product']
+            quantity = item['qty']
+            
+            # Atualizar estoque
+            product.stock -= quantity
+            product.save()
+            
+            OrderItem.objects.create(
+                order_id=order_id,
+                product=product,
+                quantity=quantity,
+                price=item['price'],
+                user=request.user if request.user.is_authenticated else None
+            )
+        
         order_success = True
         response = JsonResponse({'success': order_success})
-
+        
         return response

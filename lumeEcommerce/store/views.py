@@ -99,6 +99,53 @@ def store(request):
     context = {'all_products': all_products}
     return render(request, 'store/store.html', context)
 
+def search_results(request):
+    products = Product.objects.all()
+    
+    # Filtro por nome
+    name_query = request.GET.get('name', '')
+    if name_query:
+        products = products.filter(title__icontains=name_query)
+    
+    # Filtro por faixa de preço
+    min_price = request.GET.get('min_price', '')
+    max_price = request.GET.get('max_price', '')
+    
+    if min_price:
+        products = products.filter(price__gte=float(min_price))
+    if max_price:
+        products = products.filter(price__lte=float(max_price))
+    
+    # Filtro por categoria
+    category_id = request.GET.get('category', '')
+    if category_id:
+        products = products.filter(category__id=category_id)
+    
+    # Filtro por produtos fabricados em Mari
+    made_in_mari = request.GET.get('made_in_mari', '')
+    if made_in_mari:
+        products = products.filter(made_in_mari=True)
+    
+    # Filtro específico para funcionários (produtos com baixo estoque)
+    if request.user.is_authenticated and request.user.is_staff:
+        low_stock = request.GET.get('low_stock', '')
+        if low_stock:
+            products = products.filter(stock__lt=5)
+    
+    categories = Category.objects.all()
+    context = {
+        'all_products': products,
+        'categories': categories,
+        'name_query': name_query,
+        'min_price': min_price,
+        'max_price': max_price,
+        'category_id': category_id,
+        'made_in_mari': made_in_mari
+    }
+    
+    return render(request, 'store/store_filter.html', context)
+
+
 def categories(request):
     all_categories = Category.objects.all()
     return {'all_categories': all_categories}

@@ -105,6 +105,14 @@
     <div class="collapse navbar-collapse text-center" id="navbarNavDropdown">
       <ul class="navbar-nav ms-auto">
 
+        <li class="nav-item">
+          <a class="btn btn-alert navbar-btn text-white" type="button" href="{% url 'search_results' %}">
+          <i class="fa fa-filter" aria-hidden="true"></i>
+            &nbsp;
+            Filtrar
+          </a>
+        </li>
+
         {% if user.is_authenticated %}
           <li class="nav-item">
             <a class="btn btn-alert navbar-btn text-white" type="button" href="{% url 'dashboard' %}">
