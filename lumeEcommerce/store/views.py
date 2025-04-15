@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect
 from .models import Category, Product
 from django.shortcuts import get_object_or_404
 from django.contrib.auth.decorators import login_required, user_passes_test
-from .forms import ProductForm, CategoryForm
+from .forms import ProductForm, CategoryForm, ProductFilterForm
 
 # Create your views here.
 
@@ -112,4 +112,28 @@ def product_info(request, product_slug):
     product = get_object_or_404(Product, slug=product_slug)
     context = {'product': product}
     return render(request, 'store/product-info.html', context)
+
+def product_list(request):
+    category = request.GET.get('category')
+    min_price = request.GET.get('min_price')
+    max_price = request.GET.get('max_price')
+    is_made_in_mari = request.GET.get('is_made_in_mari')
+
+    products = Product.objects.all()
+
+    if category:
+        products = products.filter(category__name=category)
+    if min_price:
+        products = products.filter(price__gte=min_price)
+    if max_price:
+        products = products.filter(price__lte=max_price)
+    if is_made_in_mari is not None and is_made_in_mari != '':
+        products = products.filter(is_made_in_mari=is_made_in_mari)
+
+    context = {
+        'products': products,
+        'filter_form': ProductFilterForm(request.GET)
+    }
+    return render(request, 'store/product_list.html', context)
+
 

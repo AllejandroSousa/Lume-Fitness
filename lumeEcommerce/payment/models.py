@@ -3,6 +3,19 @@ from django.contrib.auth.models import User
 from store.models import Product
 # Create your models here.
 
+# Payment methods options
+PAYMENT_METHOD_CHOICES = [
+    ('PIX', 'PIX'),
+    ('Credit Card', 'Credit Card'),
+    ('Boleto', 'Boleto'),
+]
+
+# Order status options
+ORDER_STATUS_CHOICES = [
+    ('Waiting for Confirmation', 'Waiting for Confirmation'),
+    ('Confirmed', 'Confirmed'),
+    ('Cancelled', 'Cancelled'),
+]
 
 class ShippingAddress(models.Model):
 
@@ -27,35 +40,30 @@ class ShippingAddress(models.Model):
 
 
 class Order(models.Model):
-
-    full_name = models.CharField(max_length=300)
-    email = models.EmailField(max_length=255)
+    full_name = models.CharField(max_length=100)
+    customer = models.ForeignKey(User, on_delete=models.CASCADE, related_name="orders")
+    email = models.EmailField()
+    amount_paid = models.DecimalField(max_digits=10, decimal_places=2)
     shipping_address = models.TextField(max_length=10000)
-
-    amount_paid = models.DecimalField(max_digits=8, decimal_places=2)
-
-    date_ordered = models.DateTimeField(auto_now_add=True)
-
-    # Foreign Key
-    user = models.ForeignKey(
-        User, on_delete=models.CASCADE, null=True, blank=True)
+    order_date = models.DateTimeField(auto_now_add=True)
+    payment_method = models.CharField(max_length=20, choices=PAYMENT_METHOD_CHOICES)
+    order_status = models.CharField(max_length=30, choices=ORDER_STATUS_CHOICES, default='Pendent')
+    seller = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name="sales")
 
     def __str__(self):
-        return 'Order - #' + str(self.id)
+        return f"Order #{self.pk} by {self.customer.username}"
+
+    @property
+    def total(self):
+        return sum(item.subtotal for item in self.items.all())
 
 
 class OrderItem(models.Model):
+    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name="items")
+    product = models.ForeignKey(Product, on_delete=models.PROTECT)
+    quantity = models.PositiveIntegerField()
 
-    # Foreign Key
-    order = models.ForeignKey(Order, on_delete=models.CASCADE, null=True)
-    product = models.ForeignKey(Product, on_delete=models.CASCADE, null=True)
+    @property
+    def subtotal(self):
+        return self.product.price * self.quantity
 
-    quantity = models.PositiveBigIntegerField(default=1)
-    price = models.DecimalField(max_digits=8, decimal_places=2)
-
-    # Foreign Key
-    user = models.ForeignKey(
-        User, on_delete=models.CASCADE, null=True, blank=True)
-
-    def __str__(self):
-        return 'Order Item - #' + str(self.id)

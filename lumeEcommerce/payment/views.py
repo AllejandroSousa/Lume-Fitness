@@ -3,7 +3,50 @@ from .models import ShippingAddress, Order, OrderItem
 from cart.cart import Cart
 from django.http import JsonResponse
 from django.conf import settings
-# Create your views here.
+from django.contrib.auth.decorators import login_required, user_passes_test
+from django.shortcuts import redirect
+
+@login_required(login_url='my-login')
+@user_passes_test(lambda u: u.is_staff)
+def manage_orders(request):
+    orders = Order.objects.filter(status='Pending')
+
+    if request.method == 'POST':
+        order_id = request.POST.get('order_id')
+        action = request.POST.get('action')  # 'approve' ou 'reject'
+
+        try:
+            order = Order.objects.get(id=order_id)
+            if action == 'approve':
+                order.status = 'Confirmed'
+            elif action == 'reject':
+                order.status = 'Rejected'
+            order.save()
+        except Order.DoesNotExist:
+            pass
+
+        return redirect('manage_orders')
+
+    return render(request, 'store/admin_management/manage_orders.html', {'orders': orders})
+
+@login_required(login_url='my-login')
+@user_passes_test(lambda u: u.is_staff)
+def sales_report(request):
+    if not request.user.is_superuser:
+        return redirect('home')
+
+    confirmed_orders = Order.objects.filter(status='Confirmed')
+
+    sales_by_seller = {}
+    for order in confirmed_orders:
+        seller = order.seller
+        if seller not in sales_by_seller:
+            sales_by_seller[seller] = 0
+        sales_by_seller[seller] += order.total
+
+    return render(request, 'store/admin_management/sales_report.html', {
+        'sales_by_seller': sales_by_seller
+    })
 
 
 def checkout(request):
@@ -52,46 +95,81 @@ def complete_order(request):
         address2 = request.POST.get('address2')
         city = request.POST.get('city')
         state = request.POST.get('state')
+        payment_method = request.POST.get('payment_method')
 
         shipping_address = (address1 + "\n" + address2 +
                             "\n" + city + "\n" + state + "\n" + zipcode)
 
         # Shopping cart information
         cart = Cart(request)
-
         total_cost = cart.get_total()
 
-        '''
-            Order variations
+        # Try to identify seller from first cart item
+        try:
+            first_item = next(iter(cart))
+            seller = first_item['product'].seller
+        except StopIteration:
+            return JsonResponse({'success': False, 'error': 'Cart is empty'})
 
-            1) Create order -> Account users WITH + WITHOUT shipping information
-            2) Create order -> Guest users without an account
-        '''
-
-        # 1) Create order -> Account users WITH + WITHOUT shipping information
         if request.user.is_authenticated:
+            profile = request.user.profile
+
+            discount = 0
+            if profile.supports_flamengo:
+                discount += 0.10
+            if profile.watches_one_piece:
+                discount += 0.05
+            if profile.city and profile.city.strip().lower() == 'sousa':
+                discount += 0.15
+
+            discounted_total = total_cost - (total_cost * discount)
 
             order = Order.objects.create(
-                full_name=name, email=email, shipping_address=shipping_address, amount_paid=total_cost, user=request.user)
+                full_name=name,
+                email=email,
+                shipping_address=shipping_address,
+                amount_paid=discounted_total,
+                payment_method=payment_method,
+                user=request.user,
+                seller=seller,
+            )
 
             order_id = order.pk
 
             for item in cart:
                 OrderItem.objects.create(
-                    order_id=order_id, product=item['product'], quantity=item['qty'], price=item['price'], user=request.user)
+                    order_id=order_id,
+                    product=item['product'],
+                    quantity=item['qty'],
+                    price=item['price'],
+                    user=request.user
+                )
 
-        # 2) Create order -> Guest users without an account
         else:
+            # Guest user: no discount
             order = Order.objects.create(
-                full_name=name, email=email, shipping_address=shipping_address, amount_paid=total_cost, user=request.user)
+                full_name=name,
+                email=email,
+                shipping_address=shipping_address,
+                amount_paid=total_cost,
+                payment_method=payment_method,
+                user=None,
+                seller=seller,
+            )
 
             order_id = order.pk
 
             for item in cart:
                 OrderItem.objects.create(
-                    order_id=order_id, product=item['product'], quantity=item['qty'], price=item['price'], user=request.user)
+                    order_id=order_id,
+                    product=item['product'],
+                    quantity=item['qty'],
+                    price=item['price'],
+                    user=None
+                )
 
-        order_success = True
-        response = JsonResponse({'success': order_success})
+        # Clear cart
+        del request.session['session_key']
 
-        return response
+        return JsonResponse({'success': True})
+

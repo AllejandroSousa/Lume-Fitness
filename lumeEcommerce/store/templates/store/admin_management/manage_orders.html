@@ -1,0 +1,93 @@
+{% extends 'store/base.html' %}
+{% load static %}
+{% block content %}
+
+<style>
+    .container {
+        background-color: #f8f9fa;
+        border-radius: 10px;
+        padding: 30px;
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+        margin: 50px auto;
+        max-width: 1000px;
+    }
+
+    h3 {
+        text-align: center;
+        color: #343a40;
+        font-weight: 600;
+        margin-bottom: 30px;
+    }
+
+    table {
+        width: 100%;
+        margin-top: 20px;
+        border-collapse: collapse;
+    }
+
+    th, td {
+        padding: 15px;
+        border-bottom: 1px solid #dee2e6;
+    }
+
+    th {
+        background-color: #e9ecef;
+        text-align: left;
+    }
+
+    .btn-status {
+        padding: 5px 10px;
+        font-size: 14px;
+        margin-right: 5px;
+    }
+</style>
+
+<div class="container">
+    <h3>Gerenciar Pedidos</h3>
+
+    {% if orders %}
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Cliente</th>
+                    <th>Produto</th>
+                    <th>Status</th>
+                    <th>Método de Pagamento</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for order in orders %}
+                    <tr>
+                        <td>{{ order.id }}</td>
+                        <td>{{ order.user.username }}</td>
+                        <td>{{ order.product.title }}</td>
+                        <td>{{ order.status }}</td>
+                        <td>{{ order.payment_method }}</td>
+                        <td>
+                            <form method="POST">
+                                {% csrf_token %}
+                                <input type="hidden" name="order_id" value="{{ order.id }}">
+                                <select name="status" class="form-control form-control-sm d-inline w-auto">
+                                    <option value="Pendente" {% if order.status == 'Pendente' %}selected{% endif %}>Pendente</option>
+                                    <option value="Pago" {% if order.status == 'Pago' %}selected{% endif %}>Pago</option>
+                                    <option value="Enviado" {% if order.status == 'Enviado' %}selected{% endif %}>Enviado</option>
+                                    <option value="Entregue" {% if order.status == 'Entregue' %}selected{% endif %}>Entregue</option>
+                                </select>
+                                <button type="submit" class="btn btn-primary btn-status">Atualizar</button>
+                            </form>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p class="text-center">Nenhum pedido encontrado.</p>
+    {% endif %}
+
+    <div class="text-center mt-4">
+        <a href="{% url 'store' %}">Voltar para a página inicial</a>
+    </div>
+</div>
+{% endblock %}

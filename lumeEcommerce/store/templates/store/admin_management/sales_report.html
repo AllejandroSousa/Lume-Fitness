@@ -1,0 +1,82 @@
+{% extends 'store/base.html' %}
+{% load static %}
+{% block content %}
+
+<style>
+    .container {
+        background-color: #f8f9fa;
+        border-radius: 10px;
+        padding: 30px;
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+        margin: 50px auto;
+        max-width: 1000px;
+    }
+
+    h3 {
+        text-align: center;
+        color: #343a40;
+        font-weight: 600;
+        margin-bottom: 30px;
+    }
+
+    table {
+        width: 100%;
+        margin-top: 20px;
+        border-collapse: collapse;
+    }
+
+    th, td {
+        padding: 15px;
+        border-bottom: 1px solid #dee2e6;
+    }
+
+    th {
+        background-color: #e9ecef;
+        text-align: left;
+    }
+
+    .summary {
+        margin-top: 30px;
+        font-weight: bold;
+    }
+</style>
+
+<div class="container">
+    <h3>Relatório de Vendas</h3>
+
+    {% if sales %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Produto</th>
+                    <th>Vendedor</th>
+                    <th>Data</th>
+                    <th>Quantidade</th>
+                    <th>Preço Total</th>
+                    <th>Método de Pagamento</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for sale in sales %}
+                    <tr>
+                        <td>{{ sale.product.title }}</td>
+                        <td>{{ sale.seller.username }}</td>
+                        <td>{{ sale.created_at|date:"d/m/Y H:i" }}</td>
+                        <td>{{ sale.quantity }}</td>
+                        <td>R$ {{ sale.total_price }}</td>
+                        <td>{{ sale.payment_method }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <p class="summary text-end">Total Geral: <strong>R$ {{ total_sales }}</strong></p>
+    {% else %}
+        <p class="text-center">Nenhuma venda registrada.</p>
+    {% endif %}
+
+    <div class="text-center mt-4">
+        <a href="{% url 'store' %}">Voltar para a página inicial</a>
+    </div>
+</div>
+{% endblock %}

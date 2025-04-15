@@ -17,13 +17,15 @@ class Category(models.Model):
         return reverse('list-category', args=[self.slug])
 
 class Product(models.Model):
-    category = models.ForeignKey(Category, related_name='product', on_delete=models.CASCADE, null=True)
-    title = models.CharField(max_length=250)
-    brand = models.CharField(max_length=250, default='Sem marca')
-    description = models.TextField(blank=True)  #Optional
-    slug = models.SlugField(max_length=250)
-    price = models.DecimalField(max_digits=6, decimal_places=2)
-    image = models.ImageField(upload_to='images/')
+    category = models.ForeignKey(Category, on_delete=models.CASCADE)
+    title = models.CharField(max_length=255)
+    brand = models.CharField(max_length=100)
+    description = models.TextField()
+    slug = models.SlugField(unique=True)
+    price = models.DecimalField(max_digits=10, decimal_places=2)
+    image = models.ImageField(upload_to='products/')
+    stock = models.PositiveIntegerField(default=0)  # New field to track stock quantity
+    is_made_in_mari = models.BooleanField(default=False)
 
     class Meta:
         verbose_name_plural = "products"  #Renaming the Product page in Django's admin panel

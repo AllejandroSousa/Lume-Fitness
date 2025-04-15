@@ -6,26 +6,24 @@ class Cart():
 
     def __init__(self, request):
         self.session = request.session
-
-        # Returning user - obtaining his/her existing session
-        cart = self.session.get('session_key')
-
-        # New user - generate a new session
-        if 'session_key' not in request.session:
-            cart = self.session['session_key'] = {}
-
+        cart = self.session.get('cart_key')
+        if 'cart_key' not in request.session:
+            cart = self.session['cart_key'] = {}
         self.cart = cart
 
     def add(self, product, product_qty):
         product_id = str(product.id)
 
+        if product.stock < product_qty:
+            return False  # Not enough stock
+
         if product_id in self.cart:
             self.cart[product_id]['qty'] = product_qty
         else:
-            self.cart[product_id] = {'price': str(
-                product.price), 'qty': product_qty}
+            self.cart[product_id] = {'price': str(product.price), 'qty': product_qty}
 
         self.session.modified = True
+        return True
 
     def delete(self, product):
         product_id = str(product)
