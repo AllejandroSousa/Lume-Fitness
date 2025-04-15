@@ -1,4 +1,6 @@
-{% include "store/base.html" %} {% load static %} {% block content %}
+{% extends "store/base.html" %}
+{% load static %}
+{% block content %}
 
 <style>
   body {
@@ -9,14 +11,11 @@
 <body>
   <br />
 
-  <div
-    class="container bg-white shadow-md p-5"
-    style="width: 500px; border-radius: 20px"
-  >
+  <div class="container bg-white shadow-md p-5" style="width: 500px; border-radius: 20px">
     <form id="form" onsubmit="event.preventDefault();">
       <div>
         <h3>
-          <i class="fa fa-chevron-circle-right" aria-hidden="true"></i> &nbsp;
+          <i class="fa fa-chevron-circle-right" aria-hidden="true"></i>
           Concluir pedido
         </h3>
 
@@ -33,7 +32,7 @@
             type="text"
             placeholder="Nome completo*"
             autocomplete="off"
-            value="{{shipping.full_name}}"
+            value="{{ shipping.full_name }}"
             required
           />
         </div>
@@ -47,7 +46,7 @@
             type="email"
             placeholder="Email*"
             autocomplete="off"
-            value="{{shipping.email}}"
+            value="{{ shipping.email }}"
             required
           />
         </div>
@@ -61,7 +60,7 @@
             type="text"
             placeholder="CEP*"
             autocomplete="off"
-            value="{{shipping.zipcode}}"
+            value="{{ shipping.zipcode }}"
             required
           />
         </div>
@@ -75,7 +74,7 @@
             type="text"
             placeholder="Endereço 1*"
             autocomplete="off"
-            value="{{shipping.address1}}"
+            value="{{ shipping.address1 }}"
             required
           />
         </div>
@@ -89,7 +88,7 @@
             type="text"
             placeholder="Endereço 2"
             autocomplete="off"
-            value="{{shipping.address2}}"
+            value="{{ shipping.address2 }}"
           />
         </div>
 
@@ -102,7 +101,7 @@
             type="text"
             placeholder="Cidade*"
             autocomplete="off"
-            value="{{shipping.city}}"
+            value="{{ shipping.city }}"
             required
           />
         </div>
@@ -116,36 +115,55 @@
             type="text"
             placeholder="Estado*"
             autocomplete="off"
-            value="{{shipping.state}}"
+            value="{{ shipping.state }}"
             required
           />
+        </div>
+
+        <br />
+
+        <div class="form-field">
+          <select class="form-control validate" id="seller" required>
+            <option value="" disabled selected>Selecione o vendedor*</option>
+            {% for user in sellers %}
+              <option value="{{ user.id }}">{{ user.username }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <br />
+
+        <div class="form-field">
+          <select class="form-control validate" id="payment_method" required>
+            <option value="" disabled selected>Selecione o método de pagamento*</option>
+            <option value="PIX">Pix</option>
+            <option value="CREDIT_CARD">Cartão de Crédito</option>
+            <option value="BERRIES">Berries</option>
+          </select>
         </div>
       </div>
 
       <br />
 
-      <!--Keeping this line to don't have to test using real money-->
+      <!-- Keeping this for non-PayPal testing -->
       <button
         id="complete-order"
         type="submit"
         class="btn btn-primary navbar-btn text-white"
       >
-        &nbsp; Concluir pedido
+        Concluir pedido
       </button>
 
       <br />
 
       <!-- PayPal button container -->
-
       <div id="paypal-button-container"></div>
 
       <!-- PayPal client ID integration -->
-
       <script
-      src="https://www.paypal.com/sdk/js?client-id={{ paypal_client_id }}&currency=BRL"
-      data-sdk-integration-source="integrationbuilder"
+        src="https://www.paypal.com/sdk/js?client-id={{ paypal_client_id }}&currency=BRL"
+        data-sdk-integration-source="integrationbuilder"
       ></script>
-      <br />
     </form>
   </div>
 
@@ -158,10 +176,8 @@
 
   console.log(total_price);
 
-  //  PayPal JS SDK
+  // PayPal JS SDK
   const paypalButtonsComponent = paypal.Buttons({
-    // optional styling for buttons
-    // https://developer.paypal.com/docs/checkout/standard/customize/buttons-style-guide/
     style: {
       color: "gold",
       shape: "rect",
@@ -171,63 +187,26 @@
     onInit: function (data, actions) {
       actions.disable();
 
-      // Complete order - NO SHIPPING
-
-
       document.querySelectorAll(".validate").forEach((item) => {
-        item.addEventListener("keyup", (event) => {
-          // The required fields are field out
-          var order_verified = "Yes";
+        item.addEventListener("change", (event) => {
+          var order_verified = true;
 
-          function checkInputs() {
-            $(":input[required]").each(function () {
-              if ($(this).val == "") {
-                // The required fields are empty
-                return order_verified == "No";
-              }
-            });
+          document.querySelectorAll(":input[required]").forEach((input) => {
+            if (!input.value) {
+              order_verified = false;
+            }
+          });
 
-            return order_verified;
-          }
-
-          var isOrderVerified = checkInputs();
-
-          if (isOrderVerified === "Yes") {
+          if (order_verified) {
             actions.enable();
           } else {
             actions.disable();
           }
         });
       });
-
-      // Complete order - WITH SHIPPING
-      // The required fields are field out
-      var order_verified = "Yes";
-
-      function checkInputs() {
-        $(":input[required]").each(function () {
-          if ($(this).val == "") {
-            // The required fields are empty
-            return order_verified == "No";
-          }
-        });
-
-        return order_verified;
-      }
-
-      var isOrderVerified = checkInputs();
-
-      if (isOrderVerified === "Yes") {
-        actions.enable();
-      } else {
-        actions.disable();
-      }
     },
 
-    // set up the transaction
     createOrder: (data, actions) => {
-      // pass in any options from the v2 orders create call:
-      // https://developer.paypal.com/api/orders/v2/#orders-create-request-body
       const createOrderPayload = {
         purchase_units: [
           {
@@ -241,13 +220,11 @@
       return actions.order.create(createOrderPayload);
     },
 
-    // finalize the transaction
     onApprove: (data, actions) => {
       const captureOrderHandler = (details) => {
         const payerName = details.payer.name.given_name;
         console.log("Transaction completed");
 
-        // Ajax integration
         $.ajax({
           type: "POST",
           url: "{% url 'complete-order' %}",
@@ -259,16 +236,16 @@
             address2: $("#address2").val(),
             city: $("#city").val(),
             state: $("#state").val(),
-            csrfmiddlewaretoken: "{{csrf_token}}",
+            seller: $("#seller").val(),
+            payment_method: $("#payment_method").val(),
+            csrfmiddlewaretoken: "{{ csrf_token }}",
             action: "post",
           },
-
           success: function (json) {
-            //console.log(json);
-            window.location.replace("{% url 'payment-success' %}")
+            window.location.replace("{% url 'payment-success' %}");
           },
           error: function (xhr, errmsg, err) {
-            window.location.replace("{% url 'payment-failed' %}")
+            window.location.replace("{% url 'payment-failed' %}");
           },
         });
       };
@@ -276,11 +253,8 @@
       return actions.order.capture().then(captureOrderHandler);
     },
 
-    // handle unrecoverable errors
     onError: (err) => {
-      console.error(
-        "An error prevented the buyer from checking out with PayPal"
-      );
+      console.error("An error prevented the buyer from checking out with PayPal");
     },
   });
 
@@ -288,35 +262,33 @@
     console.error("PayPal Buttons failed to render");
   });
 
-  
-    // Keeping this line to don't have to test using real money
-    // Complete checkout
-    $(document).on("submit", function (e) {
+  // Non-PayPal checkout
+  $(document).on("submit", "#form", function (e) {
     e.preventDefault();
     $.ajax({
-        type: "POST",
-        url: "{% url 'complete-order' %}",
-        data: {
-          name: $("#name").val(),
-          email: $("#email").val(),
-          zipcode: $("#zipcode").val(),
-          address1: $("#address1").val(),
-          address2: $("#address2").val(),
-          city: $("#city").val(),
-          state: $("#state").val(),
-          csrfmiddlewaretoken: "{{csrf_token}}",
-          action: "post",
-        },
-
-        success: function (json) {
-          //console.log(json);
-          window.location.replace("{% url 'payment-success' %}")
-        },
-        error: function (xhr, errmsg, err) {
-          window.location.replace("{% url 'payment-failed' %}")
-        },
-      });
+      type: "POST",
+      url: "{% url 'complete-order' %}",
+      data: {
+        name: $("#name").val(),
+        email: $("#email").val(),
+        zipcode: $("#zipcode").val(),
+        address1: $("#address1").val(),
+        address2: $("#address2").val(),
+        city: $("#city").val(),
+        state: $("#state").val(),
+        seller: $("#seller").val(),
+        payment_method: $("#payment_method").val(),
+        csrfmiddlewaretoken: "{{ csrf_token }}",
+        action: "post",
+      },
+      success: function (json) {
+        window.location.replace("{% url 'payment-success' %}");
+      },
+      error: function (xhr, errmsg, err) {
+        window.location.replace("{% url 'payment-failed' %}");
+      },
     });
+  });
 </script>
 
 {% endblock %}

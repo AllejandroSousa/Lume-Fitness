@@ -7,8 +7,8 @@ from django.contrib.auth.models import User
 
 class CustomerProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    supports_flamengo = models.BooleanField(default=False, label='Sou fã do Mengão')
-    watches_one_piece = models.BooleanField(default=False, label='Tenho pôster de OP no quarto')
+    supports_flamengo = models.BooleanField(default=False, name='Sou fã do Mengão')
+    watches_one_piece = models.BooleanField(default=False, name='Tenho pôster de OP no quarto')
     city = forms.ChoiceField(choices=[('Sousa', 'Sousa'), ('Other', 'Other')])
 
     def has_discount(self):

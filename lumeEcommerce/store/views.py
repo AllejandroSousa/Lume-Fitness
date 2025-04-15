@@ -1,4 +1,5 @@
 from django.shortcuts import render, redirect
+from payment.models import Order
 from .models import Category, Product
 from django.shortcuts import get_object_or_404
 from django.contrib.auth.decorators import login_required, user_passes_test
@@ -9,7 +10,8 @@ from .forms import ProductForm, CategoryForm, ProductFilterForm
 @login_required(login_url='my-login')
 @user_passes_test(lambda u: u.is_staff)
 def admin_merchandise(request):
-    # Pesquisa de produtos
+    # Lógica existente para produtos e categorias
+    # Lógica existente para produtos e categorias
     product_query = request.GET.get('product_search', '')
     if product_query:
         products = Product.objects.filter(title__icontains=product_query)
@@ -18,6 +20,13 @@ def admin_merchandise(request):
 
     # Pesquisa de categorias
     category_query = request.GET.get('category_search', '')
+    products = Product.objects.all()  # Ajuste conforme seu modelo
+    categories = Category.objects.all()  # Ajuste conforme seu modelo
+    product_form = ProductForm()  # Ajuste conforme seu formulário
+    category_form = CategoryForm()  # Ajuste conforme seu formulário
+
+    if product_query:
+        products = products.filter(title__icontains=product_query)
     if category_query:
         categories = Category.objects.filter(name__icontains=category_query)
     else:
@@ -39,14 +48,46 @@ def admin_merchandise(request):
             category_form.save()
             return redirect('admin_merchandise')
 
+    # Lógica para gerenciar pedidos
+    orders = Order.objects.filter(order_status='Pendente')
+    if request.method == 'POST' and 'order_id' in request.POST:
+        order_id = request.POST.get('order_id')
+        action = request.POST.get('action')
+        try:
+            order = Order.objects.get(id=order_id)
+            if action == 'approve':
+                order.status = 'Confirmed'
+            elif action == 'reject':
+                order.status = 'Rejected'
+            order.save()
+        except Order.DoesNotExist:
+            pass
+        return redirect('admin_merchandise' + '?tab=manage-orders')
+
+    # Lógica para relatório de vendas (somente superuser)
+    sales_by_seller = {}
+    total_sales = 0
+    if request.user.is_superuser:
+        confirmed_orders = Order.objects.filter(order_status='Confirmado')
+        for order in confirmed_orders:
+            seller = order.seller
+            if seller not in sales_by_seller:
+                sales_by_seller[seller] = 0
+            sales_by_seller[seller] += order.total
+            total_sales += order.total
+
     context = {
         'products': products,
+        'product_query': product_query,
         'categories': categories,
+        'category_query': category_query,
         'product_form': product_form,
         'category_form': category_form,
-        'product_query': product_query,  # Para manter o valor no campo de pesquisa
-        'category_query': category_query,  # Para manter o valor no campo de pesquisa
+        'orders': orders,
+        'sales_by_seller': sales_by_seller,
+        'total_sales': total_sales,
     }
+
     return render(request, 'store/admin_merchandise.html', context)
 
 @login_required(login_url='my-login')
@@ -92,6 +133,51 @@ def delete_category(request, slug):
         category.delete()
         return redirect('admin_merchandise')
     return render(request, 'store/admin_management/delete_category.html', {'category': category})
+
+@login_required(login_url='my-login')
+@user_passes_test(lambda u: u.is_staff)
+def manage_orders(request):
+    orders = Order.objects.filter(status='Pending')
+
+    if request.method == 'POST':
+        order_id = request.POST.get('order_id')
+        action = request.POST.get('action')  # 'approve' ou 'reject'
+
+        try:
+            order = Order.objects.get(id=order_id)
+            if action == 'approve':
+                order.status = 'Confirmed'
+            elif action == 'reject':
+                order.status = 'Rejected'
+            order.save()
+        except Order.DoesNotExist:
+            pass
+
+        return redirect('manage_orders')
+
+    return render(request, 'store/admin_management/manage_orders.html', {'orders': orders})
+
+@login_required(login_url='my-login')
+@user_passes_test(lambda u: u.is_staff)
+def sales_report(request):
+    if not request.user.is_superuser:
+        return redirect('store')
+
+    confirmed_orders = Order.objects.filter(status='Confirmed')
+
+    sales_by_seller = {}
+    total_sales = 0
+    for order in confirmed_orders:
+        seller = order.seller
+        if seller not in sales_by_seller:
+            sales_by_seller[seller] = 0
+        sales_by_seller[seller] += order.total
+        total_sales += order.total
+
+    return render(request, 'store/admin_management/sales_report.html', {
+        'sales_by_seller': sales_by_seller,
+        'total_sales': total_sales
+    })
 
 
 def store(request):
