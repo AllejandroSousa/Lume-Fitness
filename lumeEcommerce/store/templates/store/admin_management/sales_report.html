@@ -44,27 +44,19 @@
 <div class="container">
     <h3>Relatório de Vendas</h3>
 
-    {% if sales %}
+    {% if sales_by_seller %}
         <table>
             <thead>
                 <tr>
-                    <th>Produto</th>
                     <th>Vendedor</th>
-                    <th>Data</th>
-                    <th>Quantidade</th>
-                    <th>Preço Total</th>
-                    <th>Método de Pagamento</th>
+                    <th>Total de Vendas</th>
                 </tr>
             </thead>
             <tbody>
-                {% for sale in sales %}
+                {% for seller, total in sales_by_seller.items %}
                     <tr>
-                        <td>{{ sale.product.title }}</td>
-                        <td>{{ sale.seller.username }}</td>
-                        <td>{{ sale.created_at|date:"d/m/Y H:i" }}</td>
-                        <td>{{ sale.quantity }}</td>
-                        <td>R$ {{ sale.total_price }}</td>
-                        <td>{{ sale.payment_method }}</td>
+                        <td>{{ seller.name|default:"N/A" }}</td>
+                        <td>R$ {{ total }}</td>
                     </tr>
                 {% endfor %}
             </tbody>
@@ -72,11 +64,11 @@
 
         <p class="summary text-end">Total Geral: <strong>R$ {{ total_sales }}</strong></p>
     {% else %}
-        <p class="text-center">Nenhuma venda registrada.</p>
+        <p class="text-center">Nenhuma venda confirmada registrada.</p>
     {% endif %}
 
     <div class="text-center mt-4">
-        <a href="{% url 'store' %}">Voltar para a página inicial</a>
+        <a href="{% url 'admin_merchandise' %}">Voltar para Gerenciar Mercadorias</a>
     </div>
 </div>
 {% endblock %}

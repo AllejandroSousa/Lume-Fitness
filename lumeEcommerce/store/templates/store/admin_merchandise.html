@@ -254,7 +254,7 @@
                             <tr>
                                 <th>ID</th>
                                 <th>Cliente</th>
-                                <th>Produto</th>
+                                <th>Pagamento</th>
                                 <th>Status</th>
                                 <th>Total</th>
                                 <th>Ações</th>
@@ -264,10 +264,10 @@
                             {% for order in orders %}
                                 <tr>
                                     <td>{{ order.id }}</td>
-                                    <td>{{ order.user.username }}</td>
-                                    <td>{{ order.product.title }}</td>
+                                    <td>{{ order.full_name }}</td>
+                                    <td>{{ order.payment_method }}</td>
                                     <td>{{ order.status }}</td>
-                                    <td>R$ {{ order.total }}</td>
+                                    <td>R$ {{ order.amount_paid }}</td>
                                     <td>
                                         <form method="POST" style="display:inline;">
                                             {% csrf_token %}
@@ -307,7 +307,7 @@
                         <tbody>
                             {% for seller, total in sales_by_seller.items %}
                                 <tr>
-                                    <td>{{ seller.username }}</td>
+                                    <td>{{ seller.name }}</td>
                                     <td>R$ {{ total }}</td>
                                 </tr>
                             {% endfor %}

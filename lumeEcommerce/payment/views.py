@@ -1,4 +1,5 @@
 from django.shortcuts import render
+from store.models import Seller
 from .models import ShippingAddress, Order, OrderItem, User
 from cart.cart import Cart
 from django.http import JsonResponse
@@ -6,8 +7,9 @@ from django.conf import settings
 
 def checkout(request):
     paypal_client_id = settings.PAYPAL_CLIENT_ID
-    sellers = User.objects.filter(is_active=True)
-    
+    sellers = Seller.objects.all()
+    print(list(sellers))
+
     # Users with accounts - Pre-fill the form
     if request.user.is_authenticated:
         try:
@@ -21,19 +23,21 @@ def checkout(request):
         except ShippingAddress.DoesNotExist:
             # Authenticated users with no shipping information
             return render(request, 'payment/checkout.html', {
-                'paypal_client_id': paypal_client_id
+                'paypal_client_id': paypal_client_id,
+                'sellers': sellers
             })
 
     # Guest users
     return render(request, 'payment/checkout.html', {
-        'paypal_client_id': paypal_client_id
+        'paypal_client_id': paypal_client_id,
+        'sellers': sellers
     })
 
 
 def payment_success(request):
     # Clear shopping cart
     for key in list(request.session.keys()):
-        if key == 'session_key':
+        if key == 'cart_key':
             del request.session[key]
 
     return render(request, 'payment/payment-success.html')
@@ -62,29 +66,16 @@ def complete_order(request):
         cart = Cart(request)
         total_cost = cart.get_total()
 
-        # Validate seller
-        try:
-            seller = User.objects.get(id=seller_id)
-        except User.DoesNotExist:
-            return JsonResponse({'success': False, 'error': 'Invalid seller selected'})
-
-        # Validate payment method
-        valid_payment_methods = [choice[0] for choice in Order.PAYMENT_METHODS]
-        if payment_method not in valid_payment_methods:
-            return JsonResponse({'success': False, 'error': 'Invalid payment method'})
+        seller = Seller.objects.get(id=seller_id)
 
         if request.user.is_authenticated:
-            profile = request.user.profile
+            profile = request.user.customer_profile
 
             discount = 0
-            if profile.supports_flamengo:
+            if profile.has_discount():
                 discount += 0.10
-            if profile.watches_one_piece:
-                discount += 0.05
-            if profile.city and profile.city.strip().lower() == 'sousa':
-                discount += 0.15
-
-            discounted_total = total_cost - (total_cost * discount)
+            print(total_cost, discount)
+            discounted_total = float(total_cost) - (float(total_cost) * discount)
 
             order = Order.objects.create(
                 full_name=name,
@@ -92,7 +83,7 @@ def complete_order(request):
                 shipping_address=shipping_address,
                 amount_paid=discounted_total,
                 payment_method=payment_method,
-                user=request.user,
+                customer=request.user,
                 seller=seller,
             )
 
@@ -115,7 +106,7 @@ def complete_order(request):
                 shipping_address=shipping_address,
                 amount_paid=total_cost,
                 payment_method=payment_method,
-                user=None,
+                customer=None,
                 seller=seller,
             )
 
@@ -129,9 +120,6 @@ def complete_order(request):
                     price=item['price'],
                     user=None
                 )
-
-        # Clear cart
-        del request.session['session_key']
 
         return JsonResponse({'success': True})
 

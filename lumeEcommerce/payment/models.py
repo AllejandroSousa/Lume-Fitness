@@ -1,12 +1,12 @@
 from django.db import models
 from django.contrib.auth.models import User
-from store.models import Product
+from store.models import Product, Seller
 # Create your models here.
 
 # Payment methods options
 PAYMENT_METHOD_CHOICES = [
     ('PIX', 'PIX'),
-    ('Credit Card', 'Cartão de crédito'),
+    ('Cartão de crédito', 'Cartão de crédito'),
     ('Berries', 'Berries'),
 ]
 
@@ -48,10 +48,10 @@ class Order(models.Model):
     order_date = models.DateTimeField(auto_now_add=True)
     payment_method = models.CharField(max_length=20, choices=PAYMENT_METHOD_CHOICES, null=True)
     order_status = models.CharField(max_length=30, choices=ORDER_STATUS_CHOICES, default='Pendent')
-    seller = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name="sales")
+    seller = models.ForeignKey(Seller, on_delete=models.SET_NULL, null=True, related_name="sales")
 
     def __str__(self):
-        return f"Order #{self.pk} by {self.customer.username}"
+        return f"Order #{str(self.id)} by {self.full_name}"
 
     @property
     def total(self):
@@ -62,8 +62,13 @@ class OrderItem(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name="items", null=True)
     product = models.ForeignKey(Product, on_delete=models.PROTECT, null=True)
     quantity = models.PositiveIntegerField(default=1)
+    price = models.DecimalField(max_digits=8, decimal_places=2, null=True)
 
-    @property
-    def subtotal(self):
-        return self.product.price * self.quantity
+    # Foreign Key
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, null=True, blank=True)
+
+    def __str__(self):
+        return 'Order Item - #' + str(self.id)
+
 

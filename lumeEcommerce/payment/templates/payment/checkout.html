@@ -125,8 +125,8 @@
         <div class="form-field">
           <select class="form-control validate" id="seller" required>
             <option value="" disabled selected>Selecione o vendedor*</option>
-            {% for user in sellers %}
-              <option value="{{ user.id }}">{{ user.username }}</option>
+            {% for seller in sellers %}
+              <option value="{{ seller.id }}">{{ seller.name }}</option>
             {% endfor %}
           </select>
         </div>

@@ -49,7 +49,7 @@ def admin_merchandise(request):
             return redirect('admin_merchandise')
 
     # Lógica para gerenciar pedidos
-    orders = Order.objects.filter(order_status='Pendente')
+    orders = Order.objects.filter(order_status='Pendent')
     if request.method == 'POST' and 'order_id' in request.POST:
         order_id = request.POST.get('order_id')
         action = request.POST.get('action')
@@ -68,13 +68,13 @@ def admin_merchandise(request):
     sales_by_seller = {}
     total_sales = 0
     if request.user.is_superuser:
-        confirmed_orders = Order.objects.filter(order_status='Confirmado')
+        confirmed_orders = Order.objects.filter(order_status='Confirmed')
         for order in confirmed_orders:
             seller = order.seller
             if seller not in sales_by_seller:
                 sales_by_seller[seller] = 0
-            sales_by_seller[seller] += order.total
-            total_sales += order.total
+            sales_by_seller[seller] += order.amount_paid
+            total_sales += order.amount_paid
 
     context = {
         'products': products,
