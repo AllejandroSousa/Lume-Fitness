@@ -1,4 +1,6 @@
+from urllib.parse import urlencode
 from django.shortcuts import render, redirect
+from django.urls import reverse
 from payment.models import Order
 from .models import Category, Product
 from django.shortcuts import get_object_or_404
@@ -56,13 +58,17 @@ def admin_merchandise(request):
         try:
             order = Order.objects.get(id=order_id)
             if action == 'approve':
-                order.status = 'Confirmed'
+                order.order_status = 'Confirmed'
             elif action == 'reject':
-                order.status = 'Rejected'
+                order.order_status = 'Rejected'
             order.save()
         except Order.DoesNotExist:
             pass
-        return redirect('admin_merchandise' + '?tab=manage-orders')
+
+        base_url = reverse('admin_merchandise')
+        query_string = urlencode({'tab': 'manage-orders'})
+        url = f'{base_url}?{query_string}'
+        return redirect(url)
 
     # Lógica para relatório de vendas (somente superuser)
     sales_by_seller = {}
@@ -146,16 +152,17 @@ def manage_orders(request):
         try:
             order = Order.objects.get(id=order_id)
             if action == 'approve':
-                order.status = 'Confirmed'
+                order.order_status = 'Confirmed'
             elif action == 'reject':
-                order.status = 'Rejected'
+                order.order_status = 'Rejected'
             order.save()
         except Order.DoesNotExist:
             pass
 
         return redirect('manage_orders')
+        
 
-    return render(request, 'store/admin_management/manage_orders.html', {'orders': orders})
+    return render(request, 'store/admin_merchandise.html', {'orders': orders})
 
 @login_required(login_url='my-login')
 @user_passes_test(lambda u: u.is_staff)
@@ -174,7 +181,7 @@ def sales_report(request):
         sales_by_seller[seller] += order.total
         total_sales += order.total
 
-    return render(request, 'store/admin_management/sales_report.html', {
+    return render(request, 'store/admin_merchandise.html', {
         'sales_by_seller': sales_by_seller,
         'total_sales': total_sales
     })

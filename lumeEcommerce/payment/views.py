@@ -98,6 +98,11 @@ def complete_order(request):
                     user=request.user
                 )
 
+                # Update product stock
+                product = item['product']
+                product.stock -= item['qty']
+                product.save()
+
         else:
             # Guest user: no discount
             order = Order.objects.create(
@@ -120,6 +125,11 @@ def complete_order(request):
                     price=item['price'],
                     user=None
                 )
+
+                # Update product stock
+                product = item['product']
+                product.stock -= item['qty']
+                product.save()
 
         return JsonResponse({'success': True})
 
